@@ -11,6 +11,35 @@ st.set_page_config(page_title="적립식 투자 수익률 계산기", layout="wi
 with st.sidebar:
     st.header("투자 설정")
 
+    with st.expander("사용 가이드", expanded=False):
+        st.markdown(
+            """
+**적립식 투자(DCA)란?**
+
+한 번에 큰 돈을 넣는 대신, **일정한 주기로 조금씩 꾸준히 사는 방법**입니다.
+주가가 비쌀 때도, 쌀 때도 사게 되어 **평균 매수 단가가 자연스럽게 낮아지는 효과**가 있습니다.
+
+---
+
+**사용 방법**
+1. 아래에서 **티커**를 입력하세요 (예: QLD, TQQQ, SPY, AAPL)
+2. **시작일/종료일**로 시뮬레이션 기간을 정하세요
+3. **매수 주기**를 선택하세요
+4. **회당 매수 주수**를 설정하세요
+5. 오른쪽에서 결과를 확인하세요
+
+---
+
+**그래프 읽는 법**
+- **투자금 vs 평가금**: 파란 영역이 위로 벌어지면 수익 구간
+- **수익률 추이**: 0% 위는 수익, 아래는 손실
+- **주가 차트**: 초록 삼각형이 매수 시점, 주황 점선이 평균 매수단가
+- **적립식 vs 일시불**: 두 전략의 수익률을 직접 비교
+"""
+        )
+
+    st.divider()
+
     ticker = st.text_input("티커", value="QLD").upper()
 
     today = datetime.today().date()
@@ -125,6 +154,7 @@ st.metric("평균 매수 단가", f"${avg_price:,.2f} (현재가 ${last['종가'
 # --- 그래프 1: 투자금 vs 평가금 ---
 st.divider()
 st.subheader("투자금 vs 평가금액 추이")
+st.caption("내가 넣은 돈(점선)과 현재 가치(파란선)의 차이가 수익입니다. 파란 영역이 위로 벌어질수록 수익이 큰 구간입니다.")
 
 fig1 = go.Figure()
 fig1.add_trace(
@@ -156,6 +186,7 @@ st.plotly_chart(fig1, use_container_width=True)
 
 # --- 그래프 2: 수익률 추이 ---
 st.subheader("수익률 추이")
+st.caption("0% 위는 수익, 아래는 손실 구간입니다. 적립식 투자는 초반에 변동이 크고, 매수가 쌓일수록 안정되는 경향이 있습니다.")
 
 colors = ["#4CAF50" if v >= 0 else "#F44336" for v in result["수익률(%)"]]
 fig2 = go.Figure()
@@ -179,6 +210,7 @@ st.plotly_chart(fig2, use_container_width=True)
 
 # --- 그래프 3: 주가 + 매수 시점 ---
 st.subheader("주가 차트 & 매수 시점")
+st.caption("초록 삼각형(▲)이 실제 매수한 날이고, 주황 점선이 내 평균 매수단가입니다. 현재가가 평균단가보다 위에 있으면 수익 상태입니다.")
 
 buy_points = result[result["매수"]]
 fig3 = go.Figure()
@@ -216,6 +248,7 @@ st.plotly_chart(fig3, use_container_width=True)
 # --- 복리 효과 비교: 적립식 vs 일시불 ---
 st.divider()
 st.subheader("적립식 vs 일시불 투자 비교 (복리 효과)")
+st.caption("같은 총 금액을 첫날에 한꺼번에 넣었을 때(빨간 점선)와 나눠서 넣었을 때(파란선)의 수익률 차이입니다. 하락장에서는 적립식이, 꾸준한 상승장에서는 일시불이 유리한 경향이 있습니다.")
 
 first_price = float(df.iloc[0]["Close"])
 lump_sum_shares = total_invested / first_price  # 같은 금액을 첫날에 모두 투입
